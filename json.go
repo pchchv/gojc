@@ -15,27 +15,36 @@ func ToJSON(v any) ([]byte, error) {
 	return bytes, nil
 }
 
-// SaveJSONToFile writes the JSON byte slice into a file with the specified name.
+// SaveJSONToFile appends a new JSON object into a valid, strict JSON array file.
 func SaveJSONToFile(filename string, data []byte) error {
-	// Open file with flags:
-	//   Append
-	//   Create if non-existent
-	//   Write-Only
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	fileInfo, err := os.Stat(filename)
+
+	// If the file does not exist or is empty, initialize it as a fresh array
+	if os.IsNotExist(err) || fileInfo.Size() == 0 {
+		// Wrap payload inside an array structure: [data]
+		payload := append(append([]byte("["), data...), []byte("]")...)
+		return os.WriteFile(filename, payload, 0644)
+	} else if err != nil {
+		return err
+	}
+
+	// Open the existing file for read/write modifications
+	file, err := os.OpenFile(filename, os.O_RDWR, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Write the JSON data payload
-	if _, err := file.Write(data); err != nil {
+	// Seek to the position right before the closing bracket ']'
+	// We subtract 1 from the end of the file
+	_, err = file.Seek(-1, 2)
+	if err != nil {
 		return err
 	}
 
-	// Append a newline character to delimit multiple JSON objects properly
-	if _, err := file.Write([]byte("\n")); err != nil {
-		return err
-	}
+	// Construct the append payload: a comma delimiter followed by our new data and closing array bracket
+	payload := append(append([]byte(","), data...), []byte("]")...)
 
-	return nil
+	_, err = file.Write(payload)
+	return err
 }

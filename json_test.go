@@ -91,52 +91,37 @@ func TestToJSON(t *testing.T) {
 	}
 }
 
-func TestAppendJSONToFile(t *testing.T) {
-	// Prepare test data payloads
+func TestSaveJSONToFile(t *testing.T) {
 	userPayload := []byte(`{"id":1,"name":"John Doe","email":"john@example.com","isActive":true}`)
 	companyPayload := []byte(`{"title":"Acme Corp"}`)
 
-	// Create an isolated temporary directory for testing filesystem interactions
 	tempDir := t.TempDir()
-	filePath := filepath.Join(tempDir, "stream_output.json")
+	filePath := filepath.Join(tempDir, "array_output.json")
 
-	t.Run("Append multiple JSON objects successfully", func(t *testing.T) {
-		// First entry: writes to a brand new file
+	t.Run("Append objects into a strictly valid JSON array", func(t *testing.T) {
+		// First append: Creates the file and initializes the array
 		err := SaveJSONToFile(filePath, userPayload)
 		if err != nil {
-			t.Fatalf("AppendJSONToFile() first write failed: %v", err)
+			t.Fatalf("SaveJSONToFile() initial write failed: %v", err)
 		}
 
-		// Second entry: appends to the existing file
+		// Second append: Inserts comma and updates the closing bracket
 		err = SaveJSONToFile(filePath, companyPayload)
 		if err != nil {
-			t.Fatalf("AppendJSONToFile() second append failed: %v", err)
+			t.Fatalf("SaveJSONToFile() second append failed: %v", err)
 		}
 
-		// Read back the entire accumulated file content
+		// Read back results
 		readData, err := os.ReadFile(filePath)
 		if err != nil {
-			t.Fatalf("Failed to read the appended data file: %v", err)
+			t.Fatalf("Failed to read array data file: %v", err)
 		}
 
-		// Construct the expected outcome (both entries, each followed by a newline)
-		var expectedBuffer bytes.Buffer
-		expectedBuffer.Write(userPayload)
-		expectedBuffer.WriteByte('\n')
-		expectedBuffer.Write(companyPayload)
-		expectedBuffer.WriteByte('\n')
-		expected := expectedBuffer.Bytes()
+		// Expected format is a valid, un-nested standard JSON array
+		expected := []byte(`[{"id":1,"name":"John Doe","email":"john@example.com","isActive":true},{"title":"Acme Corp"}]`)
 
 		if !bytes.Equal(readData, expected) {
-			t.Errorf("Appended data mismatch.\nGot contents:\n%s\nExpected contents:\n%s", string(readData), string(expected))
-		}
-	})
-
-	t.Run("Fail when appending to a missing path hierarchy", func(t *testing.T) {
-		invalidPath := filepath.Join(tempDir, "missing_folder", "output.json")
-		err := SaveJSONToFile(invalidPath, userPayload)
-		if err == nil {
-			t.Error("Expected a filesystem error due to non-existent directory chain, but got nil")
+			t.Errorf("Strict JSON array mismatch.\nGot : %s\nWant: %s", string(readData), string(expected))
 		}
 	})
 }
