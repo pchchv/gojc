@@ -1,10 +1,3 @@
-# gojc
-
-CRUD JSON collector written with Go.
-
-## Usage:
-
-```go
 package main
 
 import (
@@ -38,4 +31,3 @@ func main() {
 
 	fmt.Println("The config.json file has been saved successfully.!")
 }
-```
