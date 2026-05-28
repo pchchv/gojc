@@ -1,3 +1,3 @@
-package main
+package gojc
 
 func main() {}
