@@ -26,19 +26,24 @@ func TestToJSON(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "Successful serialization of a simple structure",
-			input:   User{Id: 111, Name: "John", Email: "john@company.com", IsActive: true},
-			want:    []byte(`{"id":111,"name":"John","email":"john@company.com","isActive":true}`),
+			name: "Successfully marshal basic User struct",
+			input: User{
+				Id:       1,
+				Name:     "John Doe",
+				Email:    "john@example.com",
+				IsActive: true,
+			},
+			want:    []byte(`{"id":1,"name":"John Doe","email":"john@example.com","isActive":true}`),
 			wantErr: false,
 		},
 		{
-			name: "Ignoring hidden fields and omitempty",
+			name: "Handle Company struct with empty CEO (omitempty) and ignored field (-)",
 			input: Company{
-				Title:    "TechCorp",
+				Title:    "Acme Corp",
 				CEO:      nil,
-				Location: "Moscow",
+				Location: "New York", // Field tagged with "-" must be omitted
 			},
-			want:    []byte(`{"title":"TechCorp"}`),
+			want:    []byte(`{"title":"Acme Corp"}`),
 			wantErr: false,
 		},
 		{
@@ -48,7 +53,7 @@ func TestToJSON(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "Error thrown (invalid type for JSON - channel)",
+			name:    "Return error for types that cannot be serialized (channel)",
 			input:   make(chan int),
 			want:    nil,
 			wantErr: true,
@@ -59,11 +64,11 @@ func TestToJSON(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ToJSON(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Fatalf("ToJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("ToJSON() unexpected error status: got error = %v, wantErr = %v", err, tt.wantErr)
 			}
 
 			if !tt.wantErr && !bytes.Equal(got, tt.want) {
-				t.Errorf("ToJSON() = %s, want %s", string(got), string(tt.want))
+				t.Errorf("ToJSON() mismatch.\ngot : %s\nwant: %s", string(got), string(tt.want))
 			}
 		})
 	}
