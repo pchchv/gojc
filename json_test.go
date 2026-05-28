@@ -2,6 +2,8 @@ package gojc
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -41,7 +43,7 @@ func TestToJSON(t *testing.T) {
 			input: Company{
 				Title:    "Acme Corp",
 				CEO:      nil,
-				Location: "New York", // Field tagged with "-" must be omitted
+				Location: "New York",
 			},
 			want:    []byte(`{"title":"Acme Corp"}`),
 			wantErr: false,
@@ -87,4 +89,54 @@ func TestToJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAppendJSONToFile(t *testing.T) {
+	// Prepare test data payloads
+	userPayload := []byte(`{"id":1,"name":"John Doe","email":"john@example.com","isActive":true}`)
+	companyPayload := []byte(`{"title":"Acme Corp"}`)
+
+	// Create an isolated temporary directory for testing filesystem interactions
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "stream_output.json")
+
+	t.Run("Append multiple JSON objects successfully", func(t *testing.T) {
+		// First entry: writes to a brand new file
+		err := SaveJSONToFile(filePath, userPayload)
+		if err != nil {
+			t.Fatalf("AppendJSONToFile() first write failed: %v", err)
+		}
+
+		// Second entry: appends to the existing file
+		err = SaveJSONToFile(filePath, companyPayload)
+		if err != nil {
+			t.Fatalf("AppendJSONToFile() second append failed: %v", err)
+		}
+
+		// Read back the entire accumulated file content
+		readData, err := os.ReadFile(filePath)
+		if err != nil {
+			t.Fatalf("Failed to read the appended data file: %v", err)
+		}
+
+		// Construct the expected outcome (both entries, each followed by a newline)
+		var expectedBuffer bytes.Buffer
+		expectedBuffer.Write(userPayload)
+		expectedBuffer.WriteByte('\n')
+		expectedBuffer.Write(companyPayload)
+		expectedBuffer.WriteByte('\n')
+		expected := expectedBuffer.Bytes()
+
+		if !bytes.Equal(readData, expected) {
+			t.Errorf("Appended data mismatch.\nGot contents:\n%s\nExpected contents:\n%s", string(readData), string(expected))
+		}
+	})
+
+	t.Run("Fail when appending to a missing path hierarchy", func(t *testing.T) {
+		invalidPath := filepath.Join(tempDir, "missing_folder", "output.json")
+		err := SaveJSONToFile(invalidPath, userPayload)
+		if err == nil {
+			t.Error("Expected a filesystem error due to non-existent directory chain, but got nil")
+		}
+	})
 }
