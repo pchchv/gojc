@@ -47,6 +47,21 @@ func TestToJSON(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Handle Company struct with nested CEO populated",
+			input: Company{
+				Title: "Tech Solutions",
+				CEO: &User{
+					Id:       2,
+					Name:     "Alice Smith",
+					Email:    "alice@example.com",
+					IsActive: true,
+				},
+				Location: "London",
+			},
+			want:    []byte(`{"title":"Tech Solutions","ceo":{"id":2,"name":"Alice Smith","email":"alice@example.com","isActive":true}}`),
+			wantErr: false,
+		},
+		{
 			name:    "Passing an empty interface (nil)",
 			input:   nil,
 			want:    []byte(`null`),
