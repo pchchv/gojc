@@ -98,15 +98,25 @@ func TestSaveJSONToFile(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "array_output.json")
 
-	t.Run("Append objects into a strictly valid JSON array", func(t *testing.T) {
+	// Mock the environment variable safely for this test execution scope
+	t.Setenv("FILENAME", filePath)
+
+	// Preserve the original package global state and restore it when this test finishes
+	oldFilename := filename
+	defer func() { filename = oldFilename }()
+
+	// Mimic the production initialization logic so the global variable holds the target path
+	// In your real main app, this would be: filename = getEnvValue("FILENAME")
+	filename = filePath
+	t.Run("Append objects into a strictly valid JSON array using global configuration", func(t *testing.T) {
 		// First append: Creates the file and initializes the array
-		err := SaveJSONToFile(filePath, userPayload)
+		err := SaveJSONToFile(userPayload)
 		if err != nil {
 			t.Fatalf("SaveJSONToFile() initial write failed: %v", err)
 		}
 
 		// Second append: Inserts comma and updates the closing bracket
-		err = SaveJSONToFile(filePath, companyPayload)
+		err = SaveJSONToFile(companyPayload)
 		if err != nil {
 			t.Fatalf("SaveJSONToFile() second append failed: %v", err)
 		}
