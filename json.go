@@ -16,7 +16,7 @@ func ToJSON(v any) ([]byte, error) {
 }
 
 // SaveJSONToFile appends a new JSON object into a valid, strict JSON array file.
-func SaveJSONToFile(filename string, data []byte) error {
+func SaveJSONToFile(data []byte) error {
 	fileInfo, err := os.Stat(filename)
 
 	// If the file does not exist or is empty, initialize it as a fresh array

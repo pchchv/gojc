@@ -7,11 +7,15 @@ import (
 	"github.com/pchchv/env"
 )
 
+var filename string
+
 func init() {
 	// Load values from .env into the system
 	if err := env.Load(); err != nil {
 		log.Panic("no .env file found")
 	}
+
+	filename = getEnvValue("FILENAME")
 }
 
 func getEnvValue(v string) string {
