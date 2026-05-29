@@ -7,8 +7,6 @@ import (
 	"github.com/pchchv/gojc"
 )
 
-const fileName string = "config.json"
-
 type Config struct {
 	AppID   string `json:"app_id"`
 	Version string `json:"version"`
@@ -24,7 +22,7 @@ func main() {
 	}
 
 	// Save to file
-	err = gojc.SaveJSONToFile(fileName, data)
+	err = gojc.SaveJSONToFile(data)
 	if err != nil {
 		log.Fatalf("error writing to file: %v", err)
 	}
