@@ -1,4 +1,4 @@
-package gojc
+package main
 
 import (
 	"log"
