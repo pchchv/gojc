@@ -81,7 +81,7 @@ func handleCollect(c *echo.Context) error {
 	finalStruct := dynamicStructValue.Interface()
 
 	// Logs the name of the generated structure and its contents
-	log.Printf("[Collector] Сгенерирована структура %s: %+v\n", structName, finalStruct)
+	log.Printf("[Collector] The structure has been generated %s: %+v\n", structName, finalStruct)
 
 	// Returns fully valid typed JSON to the client
 	return c.JSON(http.StatusOK, finalStruct)
