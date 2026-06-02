@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 )
 
@@ -33,7 +34,11 @@ func SaveJSONToFile(data []byte) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Panic(err)
+		}
+	}()
 
 	// Seek to the position right before the closing bracket ']'
 	// We subtract 1 from the end of the file
