@@ -133,3 +133,29 @@ func TestLoadPing(t *testing.T) {
 	metrics.Close()
 	log.Printf("99th percentile: %s\n", metrics.Latencies.P99)
 }
+
+func TestLoadCollect(t *testing.T) {
+	host, port := getEnvValue("HOST"), getEnvValue("PORT")
+	rawQuery := `struct=heavy_user,id=1002,balance=450.50,roles=["user","manager"],meta={"region":"EU"}`
+	targetURL := "http://" + host + ":" + port + "/collect?struct=" + url.QueryEscape(strings.TrimPrefix(rawQuery, "struct="))
+	rate := vegeta.Rate{Freq: 1000, Per: time.Second}
+	duration := 5 * time.Second
+	targeter := vegeta.NewStaticTargeter(vegeta.Target{
+		Method: "GET",
+		URL:    targetURL,
+	})
+
+	var metrics vegeta.Metrics
+	attacker := vegeta.NewAttacker()
+	log.Printf("Starting load test for /collect handler (%d req/sec for %s)...", rate.Freq, duration)
+	for res := range attacker.Attack(targeter, rate, duration, "Dynamic Struct Blast!") {
+		metrics.Add(res)
+	}
+	metrics.Close()
+
+	log.Printf("[Collect Load Results] 99th percentile latency: %s\n", metrics.Latencies.P99)
+	log.Printf("[Collect Load Results] Success ratio: %.2f%%\n", metrics.Success*100)
+	if metrics.Success < 0.99 {
+		t.Errorf("Success rate is too low: %.2f%%", metrics.Success*100)
+	}
+}
