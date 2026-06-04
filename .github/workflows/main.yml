@@ -30,5 +30,4 @@ jobs:
           install-mode: goinstall
 
       - name: Run tests
-        run: go run .
-        run: go test -v -coverprofile=profile.cov ./...
+        run: go run . && go test -v -coverprofile=profile.cov ./...
