@@ -82,7 +82,11 @@ func TestHandleCollect(t *testing.T) {
 			if err != nil {
 				t.Fatalf("request failed: %v", err)
 			}
-			defer res.Body.Close()
+			defer func () { 
+				if err := res.Body.Close(); err != nil {
+					t.Fatalf("response body colosing failed: %v", err)
+				}
+			}()
 
 			if res.StatusCode != http.StatusOK {
 				t.Errorf("expected status 200, got %d", res.StatusCode)
