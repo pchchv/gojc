@@ -82,7 +82,7 @@ func TestHandleCollect(t *testing.T) {
 			if err != nil {
 				t.Fatalf("request failed: %v", err)
 			}
-			defer func () { 
+			defer func() {
 				if err := res.Body.Close(); err != nil {
 					t.Fatalf("response body colosing failed: %v", err)
 				}
