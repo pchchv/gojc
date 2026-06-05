@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -9,14 +10,16 @@ import (
 func TestMain(m *testing.M) {
 	// Set default environment variables if they are not specified in CI
 	if os.Getenv("HOST") == "" {
-		os.Setenv("HOST", "127.0.0.1")
+		_ = os.Setenv("HOST", "127.0.0.1")
 	}
 	if os.Getenv("PORT") == "" {
-		os.Setenv("PORT", "8080")
+		_ = os.Setenv("PORT", "8080")
 	}
 	if os.Getenv("FILENAME") == "" {
-		os.Setenv("FILENAME", "config.json")
+		_ = os.Setenv("FILENAME", "config.json")
 	}
+
+	log.Println("[TestMain] Starting test API server...")
 
 	go server()
 
