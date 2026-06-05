@@ -7,17 +7,21 @@ import (
 	"time"
 )
 
+// setupDummyEnv runs before any init() function in the package.
+// It ensures a physical .env file exists so env.Load() doesn't panic.
+var _ = func() bool {
+	err := os.WriteFile(".env", []byte("HOST=127.0.0.1\nPORT=8080\nFILENAME=test_collect.json\n"), 0644)
+	if err != nil {
+		log.Fatalf("Failed to create temporary .env for testing: %v", err)
+	}
+	return true
+}()
+
 func TestMain(m *testing.M) {
-	// Set default environment variables if they are not specified in CI
-	if os.Getenv("HOST") == "" {
-		_ = os.Setenv("HOST", "127.0.0.1")
-	}
-	if os.Getenv("PORT") == "" {
-		_ = os.Setenv("PORT", "8080")
-	}
-	if os.Getenv("FILENAME") == "" {
-		_ = os.Setenv("FILENAME", "config.json")
-	}
+	// Clean up the temporary .env file after all tests finish executing
+	defer func() {
+		_ = os.Remove(".env")
+	}()
 
 	log.Println("[TestMain] Starting test API server...")
 
